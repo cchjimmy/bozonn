@@ -5,9 +5,9 @@
   "main": "./build/nn.js",
   "scripts": {
     "test": "node main",
-    "build-cjs": "esbuild ./src/exports.js --bundle --outfile=build/nn.cjs --format=cjs",
-    "build-mjs": "esbuild ./src/exports.js --bundle --outfile=build/nn.mjs --format=esm",
-    "build-web": "esbuild ./src/exports.js --bundle --minify --outfile=build/nn.min.js --global-name=nnjs",
+    "build-cjs": "esbuild ./src/exports.js --bundle --outfile=build/bozonn.cjs --format=cjs",
+    "build-mjs": "esbuild ./src/exports.js --bundle --outfile=build/bozonn.mjs --format=esm",
+    "build-web": "esbuild ./src/exports.js --bundle --minify --outfile=build/bozonn.min.js --global-name=bozonn",
     "build": "npm run build-cjs && npm run build-mjs && npm run build-web"
   },
   "exports": {
