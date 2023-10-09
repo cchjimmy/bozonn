@@ -1,5 +1,5 @@
 {
-  "name": "nnjs",
+  "name": "bozonn",
   "version": "1.0.0",
   "description": "simple neural network implementation in javascript",
   "main": "./build/nn.js",
