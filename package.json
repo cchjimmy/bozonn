@@ -1,0 +1,26 @@
+{
+  "name": "nnjs",
+  "version": "1.0.0",
+  "description": "simple neural network implementation in javascript",
+  "main": "./build/nn.js",
+  "scripts": {
+    "test": "node main",
+    "build-cjs": "esbuild ./src/exports.js --bundle --outfile=build/nn.cjs --format=cjs",
+    "build-mjs": "esbuild ./src/exports.js --bundle --outfile=build/nn.mjs --format=esm",
+    "build-web": "esbuild ./src/exports.js --bundle --minify --outfile=build/nn.min.js --global-name=nnjs",
+    "build": "npm run build-cjs && npm run build-mjs && npm run build-web"
+  },
+  "exports": {
+    ".": {
+      "import": "./build/nn.mjs",
+      "require": "./build/nn.cjs",
+      "browser": "./build/nn.min.js"
+    }
+  },
+  "keywords": ["neural network"],
+  "author": "cchjimmy",
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.19.4"
+  }
+}
