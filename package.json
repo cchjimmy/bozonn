@@ -1,6 +1,6 @@
 {
   "name": "bozonn",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "simple neural network implementation in javascript",
   "main": "./build/nn.js",
   "scripts": {
