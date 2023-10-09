@@ -1,6 +1,6 @@
 {
   "name": "bozonn",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "simple neural network implementation in javascript",
   "main": "./build/nn.js",
   "scripts": {
@@ -12,9 +12,9 @@
   },
   "exports": {
     ".": {
-      "import": "./build/nn.mjs",
-      "require": "./build/nn.cjs",
-      "browser": "./build/nn.min.js"
+      "import": "./build/bozonn.mjs",
+      "require": "./build/bozonn.cjs",
+      "browser": "./build/bozonn.min.js"
     }
   },
   "keywords": ["neural network"],
