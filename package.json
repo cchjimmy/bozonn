@@ -1,26 +1,19 @@
 {
-  "name": "bozonn",
-  "version": "1.0.3",
-  "description": "simple neural network implementation in javascript",
-  "main": "./build/nn.js",
-  "scripts": {
-    "test": "node main",
-    "build-cjs": "esbuild ./src/exports.js --bundle --outfile=build/bozonn.cjs --format=cjs",
-    "build-mjs": "esbuild ./src/exports.js --bundle --outfile=build/bozonn.mjs --format=esm",
-    "build-web": "esbuild ./src/exports.js --bundle --minify --outfile=build/bozonn.min.js --global-name=bozonn",
-    "build": "npm run build-cjs && npm run build-mjs && npm run build-web"
-  },
-  "exports": {
-    ".": {
-      "import": "./build/bozonn.mjs",
-      "require": "./build/bozonn.cjs",
-      "browser": "./build/bozonn.min.js"
-    }
-  },
-  "keywords": ["neural network"],
-  "author": "cchjimmy",
-  "license": "MIT",
-  "devDependencies": {
-    "esbuild": "^0.19.4"
-  }
+	"name": "bozonn",
+	"version": "1.0.3",
+	"description": "simple neural network implementation in javascript",
+	"scripts": {
+		"start": "node main",
+		"build": "rm -rf build/* && esbuild ./src/exports.js --bundle --format=esm --outfile=build/bozonn.js",
+		"dev": "npm run build && npm run start"
+	},
+	"type": "module",
+	"keywords": [
+		"neural network"
+	],
+	"author": "cchjimmy",
+	"license": "MIT",
+	"devDependencies": {
+		"esbuild": "^0.25.0"
+	}
 }

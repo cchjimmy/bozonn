@@ -1,7 +1,5 @@
-module.exports = {
-  nN: require("./nN"),
-  activationFns: require("./activationFns"),
-  outputProcessFns: require("./outputProcessFns"),
-  optimizers: require("./optimizers"),
-  lossFns: require("./lossFns"),
-}
+export * from "./nN.js";
+export * from "./activationFns.js";
+export * from "./lossFns.js";
+export * from "./optimizers.js";
+export * from "./outputProcessFns.js";
