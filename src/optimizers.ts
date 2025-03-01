@@ -1,7 +1,20 @@
-import { derivative1D, mapM, random } from "./utils.js";
-import { predict, processLayer } from "./nN.js";
-
-export function getGradients(lossFn, model, trainInputs, trainOutputs) {
+import { derivative1D, mapM, random } from "./utils.ts";
+import { predict, processLayer } from "./nN.ts";
+import { lossFn } from "./lossFns.ts";
+import { model } from "./nN.ts";
+import { mat } from "./mat.ts";
+export type optimizer = (
+	lossFn: lossFn,
+	model: model,
+	trainInputs: mat,
+	trainOutputs: mat,
+) => number;
+export function getGradients(
+	lossFn: lossFn,
+	model: model,
+	trainInputs: mat,
+	trainOutputs: mat,
+) {
 	const layerLen = model.layers.length;
 	// forward pass
 	const activations = new Array(layerLen);
@@ -42,9 +55,16 @@ export function getGradients(lossFn, model, trainInputs, trainOutputs) {
 	}
 	return gradients;
 }
-export function gradientDescent(stepSize, maxTries) {
-	maxTries ??= 100;
-	return (lossFn, model, trainInputs, trainOutputs) => {
+export function gradientDescent(
+	stepSize: number,
+	maxTries: number = 100,
+): optimizer {
+	return (
+		lossFn: lossFn,
+		model: model,
+		trainInputs: mat,
+		trainOutputs: mat,
+	) => {
 		const gradients = getGradients(
 			lossFn,
 			model,
@@ -74,9 +94,13 @@ export function gradientDescent(stepSize, maxTries) {
 		return beginLoss;
 	};
 }
-export function evolution(stepSize, maxTries) {
-	maxTries ??= 100;
-	return (lossFn, model, trainInputs, trainOutputs) => {
+export function evolution(stepSize: number, maxTries: number = 100): optimizer {
+	return (
+		lossFn: lossFn,
+		model: model,
+		trainInputs: mat,
+		trainOutputs: mat,
+	) => {
 		const beginLoss = lossFn(
 			trainOutputs,
 			predict(model, trainInputs),

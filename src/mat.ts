@@ -1,11 +1,12 @@
-import { mapM, reduceM } from "./utils.js";
-export function abs(m) {
-	return mapM(m, (v) => Math.abs(v));
+import { mapM, reduceM } from "./utils.ts";
+export type mat = number[][];
+export function abs(m: mat) {
+	return mapM(m, (v: number) => Math.abs(v));
 }
-export function sum(m) {
-	return reduceM(m, (accum, curr) => accum + curr, 0);
+export function sum(m: mat) {
+	return reduceM(m, (accum: number, curr: number) => accum + curr, 0);
 }
-export function multM(m1, m2) {
+export function multM(m1: mat, m2: mat) {
 	const outRowLen = m1.length;
 	const outColLen = m2[0].length;
 	const matchLen = m1[0].length;
@@ -21,21 +22,22 @@ export function multM(m1, m2) {
 	}
 	return result;
 }
-export function addM(m1, m2) {
+export function addM(m1: mat, m2: mat) {
 	return mapM(m1, (v, i, j) => v + m2[i][j]);
 }
-export function subM(m1, m2) {
+export function subM(m1: mat, m2: mat) {
 	return mapM(m1, (v, i, j) => v - m2[i][j]);
 }
-export function subS(m, s) {
+// s stands for scalar
+export function subS(m: mat, s: number) {
 	return mapM(m, (v) => v - s);
 }
-export function multS(m, s) {
+export function multS(m: mat, s: number) {
 	return mapM(m, (v) => v * s);
 }
-export function power(m, exp) {
+export function power(m: mat, exp: number) {
 	return mapM(m, (v) => v ** exp);
 }
-export function mean(m) {
+export function mean(m: mat) {
 	return sum(m) / (m.length * m[0].length);
 }

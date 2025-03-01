@@ -1,9 +1,14 @@
-export function random(min, max) {
-	min ??= 0;
-	max ??= 1;
+import { mat } from "./mat.ts";
+
+export function random(min: number = 0, max: number = 1) {
 	return Math.random() * (max - min) + min;
 }
-export function randomM(m, n, min, max) {
+export function randomM(
+	m: number,
+	n: number,
+	min: number = 0,
+	max: number = 1,
+) {
 	const result = new Array(m);
 	for (let i = 0; i < m; i++) {
 		result[i] = new Array(n);
@@ -13,14 +18,16 @@ export function randomM(m, n, min, max) {
 	}
 	return result;
 }
-export function derivative1D(fn, x, halfStepSize) {
+export function derivative1D(
+	fn: (x: number) => number,
+	x: number,
+	halfStepSize: number = 1e-8,
+) {
 	// midpoint method
-	halfStepSize ??= 1e-8;
 	return (fn(x + halfStepSize) - fn(x - halfStepSize)) /
 		(2 * halfStepSize);
 }
-export function fillM(m, n, value) {
-	value ??= 0;
+export function fillM(m: number, n: number, value: number = 0) {
 	const result = new Array(m);
 	const row = new Array(n).fill(value);
 	for (let i = 0; i < m; i++) {
@@ -28,10 +35,10 @@ export function fillM(m, n, value) {
 	}
 	return result;
 }
-export function copyM(from, to) {
-	mapM(from, (x, i, j) => to[i][j] = x);
+export function copyM(from: mat, to: mat) {
+	mapM(from, (x: number, i, j) => to[i][j] = x);
 }
-export function findMinMaxM(m) {
+export function findMinMaxM(m: mat) {
 	let min = Number.POSITIVE_INFINITY;
 	let max = Number.NEGATIVE_INFINITY;
 	for (let i = 0, x = m.length; i < x; i++) {
@@ -43,15 +50,22 @@ export function findMinMaxM(m) {
 	}
 	return [min, max];
 }
-export function percent(min, max, current) {
+export function percent(min: number, max: number, current: number) {
 	return (current - min) / (max - min);
 }
-export function mapM(m, callback) {
+export function mapM(
+	m: mat,
+	callback: (curr: number, row: number, col: number) => number,
+) {
 	return m.map((element, index) =>
 		element.map((element1, index1) => callback(element1, index, index1))
 	);
 }
-export function reduceM(m, callback, accumulator) {
+export function reduceM(
+	m: mat,
+	callback: (accum: any, curr: number, row: number, col: number) => number,
+	accumulator: any,
+) {
 	return m.reduce(
 		(accum, current, index) =>
 			current.reduce(
