@@ -1,15 +1,11 @@
 import { sum } from "../src/mat.js";
-import { randomMInt } from "../src/utils.js";
+import { randomM } from "../src/utils.js";
 import assert from "node:assert";
 
-const row = 2;
-const col = 5;
-const min = 0;
-const max = 5;
-const test = randomMInt(row, col, min, max);
+const test = randomM(2, 5);
 let expected = 0;
-for (let i = 0; i < row; i++) {
-	for (let j = 0; j < col; j++) {
+for (let i = 0, row = test.length; i < row; i++) {
+	for (let j = 0, col = test[i].length; j < col; j++) {
 		expected += test[i][j];
 	}
 }

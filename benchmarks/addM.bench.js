@@ -1,5 +1,5 @@
 import { addM } from "../src/mat.js";
-import { fillM, mapM2 } from "../src/utils.js";
+import { fillM } from "../src/utils.js";
 import { bench } from "./bench.js";
 
 function vanillaAddM(m1, m2) {
@@ -29,17 +29,19 @@ function addMReduceNative(m1, m2) {
 	}
 	return result;
 }
-function addMReduceNative2(m1, m2) {
-	return mapM2(m1, (x, i, j) => x + m2[i][j]);
+function addMDoubleMap(m1, m2) {
+	return m1.map((x, i) => x.map((x1, j) => x1 + m2[i][j]));
 }
-const inputs = fillM(100, 100, 10);
-const outputs = fillM(100, 100, 2);
+const row = 500;
+const col = 500;
+const inputs = fillM(row, col, 10);
+const outputs = fillM(row, col, 2);
 const candidates = [
 	() => addM(inputs, outputs),
 	() => vanillaAddM(inputs, outputs),
 	() => addMReduceNative(inputs, outputs),
-	() => addMReduceNative2(inputs, outputs),
+	() => addMDoubleMap(inputs, outputs),
 ];
-const iterations = 10000;
+const iterations = 1000;
 
 bench(candidates, iterations);

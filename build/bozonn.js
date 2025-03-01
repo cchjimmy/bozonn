@@ -1,10 +1,10 @@
 // src/utils.js
 function random(min, max) {
+  min ??= 0;
+  max ??= 1;
   return Math.random() * (max - min) + min;
 }
 function randomM(m, n, min, max) {
-  min ??= -1;
-  max ??= 1;
   const result = new Array(m);
   for (let i = 0; i < m; i++) {
     result[i] = new Array(n);
@@ -13,6 +13,10 @@ function randomM(m, n, min, max) {
     }
   }
   return result;
+}
+function derivative1D(fn, x, halfStepSize) {
+  halfStepSize ??= 1e-8;
+  return (fn(x + halfStepSize) - fn(x - halfStepSize)) / (2 * halfStepSize);
 }
 function findMinMaxM(m) {
   let min = Number.POSITIVE_INFINITY;
@@ -31,9 +35,7 @@ function percent(min, max, current) {
 }
 function mapM(m, callback) {
   return m.map(
-    (element, index) => element.map(
-      (element1, index1) => callback(element1, index, index1)
-    )
+    (element, index) => element.map((element1, index1) => callback(element1, index, index1))
   );
 }
 function reduceM(m, callback, accumulator) {
@@ -58,9 +60,11 @@ function identity(x) {
 function sigmoid(x) {
   return 1 / (1 + Math.exp(-x));
 }
+function relu(x) {
+  return Math.max(0, x);
+}
 
 // src/nN.js
-var fns = [identity, sigmoid];
 function createModel(...layers) {
   return {
     layers
@@ -72,6 +76,7 @@ function predict(model, inputs) {
   }
   return inputs;
 }
+var fns = [identity, sigmoid];
 function processLayer(layer, inputs) {
   const outRowLen = inputs.length;
   const outColLen = layer.weights[0].length;
@@ -92,7 +97,7 @@ function processLayer(layer, inputs) {
   return output;
 }
 function createLayer(inputLength, outputLength, activationFn) {
-  const weights = randomM(inputLength + 1, outputLength);
+  const weights = randomM(inputLength + 1, outputLength, -1, 1);
   activationFn ??= identity;
   return {
     weights,
@@ -111,6 +116,9 @@ function train(optimizer, lossFn, model, iterations, trainInputs, trainOutputs) 
   console.log("progress: 100%\ntraining ends");
   return finalLoss;
 }
+function getWeights(model) {
+  return model.layers.map((x) => x.weights);
+}
 
 // src/mat.js
 function abs(m) {
@@ -118,9 +126,6 @@ function abs(m) {
 }
 function sum(m) {
   return reduceM(m, (accum, curr) => accum + curr, 0);
-}
-function addM(m1, m2) {
-  return mapM(m1, (v, i, j) => v + m2[i][j]);
 }
 function subM(m1, m2) {
   return mapM(m1, (v, i, j) => v - m2[i][j]);
@@ -141,20 +146,91 @@ function meanSquareError(targets, predictions) {
 }
 
 // src/optimizers.js
+function getGradients(lossFn, model, trainInputs, trainOutputs) {
+  const layerLen = model.layers.length;
+  const activations = new Array(layerLen);
+  activations[0] = processLayer(model.layers[0], trainInputs);
+  for (let i = 1; i < layerLen; i++) {
+    activations[i] = processLayer(
+      model.layers[i],
+      activations[i - 1]
+    );
+  }
+  const gradients = new Array(layerLen);
+  for (let i = layerLen - 1; i >= 0; i--) {
+    const input = i == 0 ? trainInputs : activations[i - 1];
+    gradients[i] = mapM(
+      model.layers[i].weights,
+      (x, row, col) => derivative1D(
+        (x2) => {
+          const old = model.layers[i].weights[row][col];
+          model.layers[i].weights[row][col] = x2;
+          let prediction = input;
+          for (let j = i; j < layerLen; j++) {
+            prediction = processLayer(
+              model.layers[j],
+              prediction
+            );
+          }
+          model.layers[i].weights[row][col] = old;
+          return lossFn(
+            trainOutputs,
+            prediction
+          );
+        },
+        x
+      )
+    );
+  }
+  return gradients;
+}
+function gradientDescent(stepSize, maxTries) {
+  maxTries ??= 100;
+  return (lossFn, model, trainInputs, trainOutputs) => {
+    const gradients = getGradients(
+      lossFn,
+      model,
+      trainInputs,
+      trainOutputs
+    );
+    const beginLoss = lossFn(trainOutputs, predict(model, trainInputs));
+    const layerLen = model.layers.length;
+    const oldWs = model.layers.map((l) => l.weights);
+    let newStepSize = stepSize;
+    for (let j = 0; j < maxTries; j++) {
+      let prediction = trainInputs;
+      for (let i = 0; i < layerLen; i++) {
+        model.layers[i].weights = mapM(
+          oldWs[i],
+          (x, row, col) => {
+            return x - gradients[i][row][col] * newStepSize;
+          }
+        );
+        prediction = processLayer(model.layers[i], prediction);
+      }
+      const endLoss = lossFn(trainOutputs, prediction);
+      if (endLoss < beginLoss) return endLoss;
+      newStepSize *= 0.1;
+    }
+    model.layers.map((l, i) => l.weights = oldWs[i]);
+    return beginLoss;
+  };
+}
 function evolution(stepSize, maxTries) {
   maxTries ??= 100;
   return (lossFn, model, trainInputs, trainOutputs) => {
-    const loss = lossFn(trainOutputs, predict(model, trainInputs));
-    if (loss < stepSize) return loss;
-    const oldWs = model.layers.map((layer) => layer.weights);
+    const beginLoss = lossFn(
+      trainOutputs,
+      predict(model, trainInputs)
+    );
+    const layerLen = model.layers.length;
+    const oldWs = model.layers.map((l) => l.weights);
     for (let t = 0; t < maxTries; t++) {
       let prediction = trainInputs;
-      for (let i = 0, m = oldWs.length; i < m; i++) {
-        model.layers[i].weights = addM(
+      for (let i = 0; i < layerLen; i++) {
+        model.layers[i].weights = mapM(
           oldWs[i],
-          randomM(
-            oldWs[i].length,
-            oldWs[i][0].length,
+          (x) => x + random(
             -stepSize,
             stepSize
           )
@@ -164,16 +240,11 @@ function evolution(stepSize, maxTries) {
           prediction
         );
       }
-      const childLoss = lossFn(
-        trainOutputs,
-        prediction
-      );
-      if (loss > childLoss) return childLoss;
+      const endLoss = lossFn(trainOutputs, prediction);
+      if (endLoss < beginLoss) return endLoss;
     }
-    for (let i = 0, m = oldWs.length; i < m; i++) {
-      model.layers[i].weights = oldWs[i];
-    }
-    return loss;
+    model.layers.map((l, i) => l.weights = oldWs[i]);
+    return beginLoss;
   };
 }
 
@@ -186,11 +257,15 @@ export {
   createLayer,
   createModel,
   evolution,
+  getGradients,
+  getWeights,
+  gradientDescent,
   identity,
   meanAbsoluteError,
   meanSquareError,
   predict,
   processLayer,
+  relu,
   sigmoid,
   softmax,
   train

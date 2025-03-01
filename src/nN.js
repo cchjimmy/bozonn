@@ -1,6 +1,5 @@
 import { randomM } from "./utils.js";
 import { identity, sigmoid } from "./activationFns.js";
-const fns = [identity, sigmoid];
 export function createModel(...layers) {
 	return {
 		layers,
@@ -12,6 +11,7 @@ export function predict(model, inputs) {
 	}
 	return inputs;
 }
+const fns = [identity, sigmoid];
 export function processLayer(layer, inputs) {
 	const outRowLen = inputs.length;
 	const outColLen = layer.weights[0].length;
@@ -35,7 +35,7 @@ export function processLayer(layer, inputs) {
 }
 export function createLayer(inputLength, outputLength, activationFn) {
 	// extra weight as the value of bias
-	const weights = randomM(inputLength + 1, outputLength);
+	const weights = randomM(inputLength + 1, outputLength, -1, 1);
 	activationFn ??= identity;
 	return {
 		weights,
@@ -60,4 +60,7 @@ export function train(
 	}
 	console.log("progress: 100%\ntraining ends");
 	return finalLoss;
+}
+export function getWeights(model) {
+	return model.layers.map((x) => x.weights);
 }

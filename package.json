@@ -3,9 +3,7 @@
 	"version": "1.0.3",
 	"description": "simple neural network implementation in javascript",
 	"scripts": {
-		"start": "node main",
-		"build": "rm -rf build/* && esbuild ./src/exports.js --bundle --format=esm --outfile=build/bozonn.js",
-		"dev": "npm run build && npm run start"
+		"build": "rm models/* build/*; esbuild ./src/exports.js --bundle --format=esm --outfile=build/bozonn.js"
 	},
 	"type": "module",
 	"keywords": [

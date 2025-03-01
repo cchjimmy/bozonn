@@ -13,11 +13,10 @@ export function multM(m1, m2) {
 	for (let i = 0; i < m1.length; i++) {
 		result[i] = new Array(outColLen);
 		for (let j = 0; j < outColLen; j++) {
-			let value = 0;
+			result[i][j] = 0;
 			for (let k = 0; k < matchLen; k++) {
-				value += m1[i][k] * m2[k][j];
+				result[i][j] += m1[i][k] * m2[k][j];
 			}
-			result[i][j] = value;
 		}
 	}
 	return result;
