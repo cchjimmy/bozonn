@@ -57,27 +57,25 @@ export function mapM(
 	m: mat,
 	callback: (curr: number, row: number, col: number) => number,
 ) {
-	return m.map((element, index) =>
-		element.map((element1, index1) => callback(element1, index, index1))
-	);
+	const result = new Array(m.length);
+	const row = new Array(m[0].length);
+	for (let i = 0, n = m.length; i < n; i++) {
+		result[i] = row.slice();
+		for (let j = 0, o = m[i].length; j < o; j++) {
+			result[i][j] = callback(m[i][j], i, j);
+		}
+	}
+	return result;
 }
 export function reduceM(
 	m: mat,
-	callback: (accum: any, curr: number, row: number, col: number) => number,
-	accumulator: any,
+	callback: (accum: any, curr: number, row: number, col: number) => any,
+	accumulator: any = 0,
 ) {
-	return m.reduce(
-		(accum, current, index) =>
-			current.reduce(
-				(accum1, current1, index1) =>
-					callback(
-						accum1,
-						current1,
-						index,
-						index1,
-					),
-				accum,
-			),
-		accumulator,
-	);
+	for (let i = 0, n = m.length; i < n; i++) {
+		for (let j = 0, o = m[i].length; j < o; j++) {
+			accumulator = callback(accumulator, m[i][j], i, j);
+		}
+	}
+	return accumulator;
 }
