@@ -15,40 +15,6 @@ export function predict(model: model, inputs: mat) {
 	}
 	return inputs;
 }
-const fns = [identity, sigmoid];
-export function processLayer(layer: layer, inputs: mat) {
-	const outRowLen = inputs.length;
-	const outColLen = layer.weights[0].length;
-	const matchLen = inputs[0].length + 1; // account for bias
-	const output = new Array(outRowLen);
-	for (let i = 0; i < outRowLen; i++) {
-		output[i] = new Array(outColLen);
-		inputs[i].push(1);
-		for (let j = 0; j < outColLen; j++) {
-			output[i][j] = 0;
-			for (let k = 0; k < matchLen; k++) {
-				output[i][j] += inputs[i][k] *
-					layer.weights[k][j];
-			}
-			output[i][j] = fns[layer.activationFn](output[i][j]);
-		}
-		inputs[i].pop();
-	}
-	return output;
-}
-export type layer = { weights: mat; activationFn: number };
-export function createLayer(
-	inputLength: number,
-	outputLength: number,
-	activationFn: activationFn = identity,
-) {
-	// extra weight as the value of bias
-	const weights = randomM(inputLength + 1, outputLength, -1, 1);
-	return {
-		weights,
-		activationFn: fns.indexOf(activationFn),
-	};
-}
 export function train(
 	optimizer: optimizer,
 	lossFn: lossFn,
@@ -70,4 +36,90 @@ export function train(
 }
 export function getWeights(model: model) {
 	return model.layers.map((x) => x.weights);
+}
+const activationFns = [identity, sigmoid];
+const processFns = [denseLayerProcessFn, convLayerProcessFn];
+export type layer = { weights: mat; activationFn: number; processFn: number };
+export function processLayer(layer: layer & any, inputs: mat) {
+	return processFns[layer.processFn](layer, inputs);
+}
+function denseLayerProcessFn(layer: layer, inputs: mat) {
+	const outRowLen = inputs.length,
+		outColLen = layer.weights[0].length,
+		matchLen = inputs[0].length + 1, // account for bias
+		output = new Array(outRowLen),
+		row = new Array(outColLen).fill(0);
+	for (let i = 0; i < outRowLen; i++) {
+		output[i] = row.slice();
+		inputs[i].push(1);
+		for (let j = 0; j < outColLen; j++) {
+			for (let k = 0; k < matchLen; k++) {
+				output[i][j] += inputs[i][k] *
+					layer.weights[k][j];
+			}
+			output[i][j] = activationFns[layer.activationFn](output[i][j]);
+		}
+		inputs[i].pop();
+	}
+	return output;
+}
+export function createDenseLayer(
+	inputLength: number,
+	outputLength: number,
+	activationFn: activationFn = identity,
+): layer {
+	// extra weight as the value of bias
+	const weights = randomM(inputLength + 1, outputLength, -1, 1);
+	return {
+		weights,
+		activationFn: activationFns.indexOf(activationFn),
+		processFn: processFns.indexOf(denseLayerProcessFn),
+	};
+}
+function convLayerProcessFn(
+	layer: layer & { padding: number; stride: number },
+	input: mat,
+) {
+	const filterRow = layer.weights.length;
+	const filterCol = layer.weights[0].length;
+	const inRow = input.length;
+	const inCol = input[0].length;
+	const outRow = (inRow + layer.padding * 2 - filterRow) / layer.stride + 1;
+	const outCol = (inCol + layer.padding * 2 - filterCol) / layer.stride + 1;
+	const halfRowDiff = (outRow - inRow) / 2;
+	const halfColDiff = (outCol - inCol) / 2;
+	const out = new Array(outRow);
+	const row = new Array(outCol).fill(0);
+	for (let i = 0; i < outRow; i++) {
+		out[i] = row.slice();
+		for (let j = 0; j < outCol; j++) {
+			for (let k = 0; k < filterRow; k++) {
+				for (let l = 0; l < filterCol; l++) {
+					const rowIdx = (i - halfRowDiff) * layer.stride + k - 1;
+					const colIdx = (j - halfColDiff) * layer.stride + l - 1;
+					// this means padded value is 0
+					if (!(input[rowIdx] && input[rowIdx][colIdx])) continue;
+					out[i][j] += input[rowIdx][colIdx] *
+						layer.weights[k][l];
+				}
+			}
+		}
+	}
+	return out;
+}
+export function createConvLayer(
+	filterRow: number = 3,
+	filterCol: number = 3,
+	padding: number = 1,
+	stride: number = 1,
+	activationFn: activationFn = identity,
+): layer & { padding: number; stride: number } {
+	const weights = randomM(filterRow, filterCol, -1, 1);
+	return {
+		weights,
+		activationFn: activationFns.indexOf(activationFn),
+		processFn: processFns.indexOf(convLayerProcessFn),
+		padding,
+		stride,
+	};
 }

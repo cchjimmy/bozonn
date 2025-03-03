@@ -1,5 +1,5 @@
 import { meanSquareError } from "../src/lossFns.ts";
-import { createLayer, createModel, predict, train } from "../src/nN.ts";
+import { createDenseLayer, createModel, predict, train } from "../src/nN.ts";
 import { evolution, gradientDescent } from "../src/optimizers.ts";
 import { mapM, randomM } from "../src/utils.ts";
 import { copyModel, loadModel, saveModel } from "./trainer.ts";
@@ -22,7 +22,7 @@ for (let i = 0, m = inputs.length; i < m; i++) {
 }
 const filePath = "../models/add2Model.json";
 let model = await loadModel(filePath);
-model ??= createModel(createLayer(1, 1));
+model ??= createModel(createDenseLayer(1, 1));
 const model1 = copyModel(model);
 const trainError = train(
 	gradientDescent(1e-4),

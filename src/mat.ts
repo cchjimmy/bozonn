@@ -11,10 +11,10 @@ export function multM(m1: mat, m2: mat) {
 	const outColLen = m2[0].length;
 	const matchLen = m1[0].length;
 	const result = new Array(outRowLen);
+	const row = new Array(outColLen).fill(0);
 	for (let i = 0; i < m1.length; i++) {
-		result[i] = new Array(outColLen);
+		result[i] = row.slice();
 		for (let j = 0; j < outColLen; j++) {
-			result[i][j] = 0;
 			for (let k = 0; k < matchLen; k++) {
 				result[i][j] += m1[i][k] * m2[k][j];
 			}

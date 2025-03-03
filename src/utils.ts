@@ -8,10 +8,11 @@ export function randomM(
 	n: number,
 	min: number = 0,
 	max: number = 1,
-) {
+): mat {
 	const result = new Array(m);
+	const row = new Array(n);
 	for (let i = 0; i < m; i++) {
-		result[i] = new Array(n);
+		result[i] = row.slice();
 		for (let j = 0; j < n; j++) {
 			result[i][j] = random(min, max);
 		}
@@ -27,7 +28,7 @@ export function derivative1D(
 	return (fn(x + halfStepSize) - fn(x - halfStepSize)) /
 		(2 * halfStepSize);
 }
-export function fillM(m: number, n: number, value: number = 0) {
+export function fillM(m: number, n: number, value: number = 0): mat {
 	const result = new Array(m);
 	const row = new Array(n).fill(value);
 	for (let i = 0; i < m; i++) {
@@ -35,8 +36,8 @@ export function fillM(m: number, n: number, value: number = 0) {
 	}
 	return result;
 }
-export function copyM(from: mat, to: mat) {
-	mapM(from, (x: number, i, j) => to[i][j] = x);
+export function copyM(from: mat, to: mat): mat {
+	return mapM(from, (x: number, i, j) => to[i][j] = x);
 }
 export function findMinMaxM(m: mat) {
 	let min = Number.POSITIVE_INFINITY;
@@ -56,7 +57,7 @@ export function percent(min: number, max: number, current: number) {
 export function mapM(
 	m: mat,
 	callback: (curr: number, row: number, col: number) => number,
-) {
+): mat {
 	const result = new Array(m.length);
 	const row = new Array(m[0].length);
 	for (let i = 0, n = m.length; i < n; i++) {
