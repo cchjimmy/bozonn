@@ -36,8 +36,8 @@ export function fillM(m: number, n: number, value: number = 0): mat {
 	}
 	return result;
 }
-export function copyM(from: mat, to: mat): mat {
-	return mapM(from, (x: number, i, j) => to[i][j] = x);
+export function copyM(m: mat) {
+	return mapM(m, (x) => x);
 }
 export function findMinMaxM(m: mat) {
 	let min = Number.POSITIVE_INFINITY;

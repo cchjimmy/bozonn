@@ -1,5 +1,5 @@
 import { randomM } from "./utils.ts";
-import { activationFn, identity, sigmoid } from "./activationFns.ts";
+import { activationFn, identity, relu, sigmoid } from "./activationFns.ts";
 import { lossFn } from "./lossFns.ts";
 import { mat } from "./mat.ts";
 import { optimizer } from "./optimizers.ts";
@@ -37,18 +37,18 @@ export function train(
 export function getWeights(model: model) {
 	return model.layers.map((x) => x.weights);
 }
-const activationFns = [identity, sigmoid];
+const activationFns = [identity, sigmoid, relu];
 const processFns = [denseLayerProcessFn, convLayerProcessFn];
 export type layer = { weights: mat; activationFn: number; processFn: number };
 export function processLayer(layer: layer & any, inputs: mat) {
 	return processFns[layer.processFn](layer, inputs);
 }
 function denseLayerProcessFn(layer: layer, inputs: mat) {
-	const outRowLen = inputs.length,
-		outColLen = layer.weights[0].length,
-		matchLen = inputs[0].length + 1, // account for bias
-		output = new Array(outRowLen),
-		row = new Array(outColLen).fill(0);
+	const outRowLen = inputs.length;
+	const outColLen = layer.weights[0].length;
+	const matchLen = inputs[0].length + 1; // account for bias
+	const output = new Array(outRowLen);
+	const row = new Array(outColLen).fill(0);
 	for (let i = 0; i < outRowLen; i++) {
 		output[i] = row.slice();
 		inputs[i].push(1);

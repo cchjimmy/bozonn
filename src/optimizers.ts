@@ -1,4 +1,4 @@
-import { derivative1D, mapM, random } from "./utils.ts";
+import { copyM, derivative1D, mapM, random, reduceM } from "./utils.ts";
 import { predict, processLayer } from "./nN.ts";
 import { lossFn } from "./lossFns.ts";
 import { model } from "./nN.ts";
@@ -73,24 +73,25 @@ export function gradientDescent(
 		);
 		const beginLoss = lossFn(trainOutputs, predict(model, trainInputs));
 		const layerLen = model.layers.length;
-		const oldWs = model.layers.map((l) => l.weights);
+		const oldWs = model.layers.map((l) => copyM(l.weights));
 		let newStepSize = stepSize;
 		for (let j = 0; j < maxTries; j++) {
 			let prediction = trainInputs;
 			for (let i = 0; i < layerLen; i++) {
-				model.layers[i].weights = mapM(
-					oldWs[i],
-					(x, row, col) => {
-						return x - (gradients[i][row][col]) * newStepSize;
-					},
-				);
+				reduceM(model.layers[i].weights, (accum, curr, k, l) => {
+					accum[k][l] = oldWs[i][k][l] -
+						gradients[i][k][l] * newStepSize;
+					return accum;
+				}, model.layers[i].weights);
 				prediction = processLayer(model.layers[i], prediction);
 			}
 			const endLoss = lossFn(trainOutputs, prediction);
 			if (endLoss < beginLoss) return endLoss;
 			newStepSize *= 0.1;
 		}
-		model.layers.map((l, i) => l.weights = oldWs[i]);
+		for (let i = 0, m = model.layers.length; i < m; i++) {
+			model.layers[i].weights = oldWs[i];
+		}
 		return beginLoss;
 	};
 }
@@ -106,18 +107,14 @@ export function evolution(stepSize: number, maxTries: number = 100): optimizer {
 			predict(model, trainInputs),
 		);
 		const layerLen = model.layers.length;
-		const oldWs = model.layers.map((l) => l.weights);
+		const oldWs = model.layers.map((l) => copyM(l.weights));
 		for (let t = 0; t < maxTries; t++) {
 			let prediction = trainInputs;
 			for (let i = 0; i < layerLen; i++) {
-				model.layers[i].weights = mapM(
-					oldWs[i],
-					(x) =>
-						x + random(
-							-stepSize,
-							stepSize,
-						),
-				);
+				reduceM(model.layers[i].weights, (accum, curr, j, k) => {
+					accum[j][k] = oldWs[i][j][k] + random(-stepSize, stepSize);
+					return accum;
+				}, model.layers[i].weights);
 				prediction = processLayer(
 					model.layers[i],
 					prediction,
@@ -126,7 +123,9 @@ export function evolution(stepSize: number, maxTries: number = 100): optimizer {
 			const endLoss = lossFn(trainOutputs, prediction);
 			if (endLoss < beginLoss) return endLoss;
 		}
-		model.layers.map((l, i) => l.weights = oldWs[i]);
+		for (let i = 0, m = model.layers.length; i < m; i++) {
+			model.layers[i].weights = oldWs[i];
+		}
 		return beginLoss;
 	};
 }
